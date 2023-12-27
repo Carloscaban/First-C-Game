@@ -1,7 +1,6 @@
 #include "utils.cpp"
 #include <windows.h>
 
-
 globalVariable bool running = true;
 
 struct RenderState {
@@ -13,7 +12,9 @@ struct RenderState {
 
 globalVariable RenderState renderState;
 
+#include "platformCommon.cpp"
 #include "renderer.cpp"
+#include "game.cpp"
 
 LRESULT CALLBACK windowCallback(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 	LRESULT result = 0;
@@ -30,7 +31,7 @@ LRESULT CALLBACK windowCallback(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 			renderState.width = rect.right - rect.left;
 			renderState.height = rect.bottom - rect.top;
 
-			int size = renderState.width * renderState.height * sizeof(unsigned int);
+			int size = renderState.width * renderState.height * sizeof(u32);
 
 			if (renderState.memory) VirtualFree(renderState.memory, 0, MEM_RELEASE);
 			renderState.memory = VirtualAlloc(0, size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
@@ -66,18 +67,47 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
 	HWND window = CreateWindow(windowClass.lpszClassName, "My First Game", WS_OVERLAPPEDWINDOW | WS_VISIBLE, CW_USEDEFAULT, CW_USEDEFAULT, 1280, 720, 0, 0, hInstance, 0);
 	HDC hdc = GetDC(window);
 
+	Input input = {};
 
 	while (running) {
 		// input
 		MSG message;
+
+		for (int i = 0; i < BUTTON_COUNT; i++) {
+			input.buttons[i].hasChanged = false;
+		}
+
 		while (PeekMessage(&message, window, 0, 0, PM_REMOVE)) {
-			TranslateMessage(&message);
-			DispatchMessage(&message);
+
+			switch (message.message) {
+				case WM_KEYUP:
+				case WM_KEYDOWN: {
+					u32 vkCode = (u32)message.wParam;
+					bool isDown = ((message.lParam & (1 << 31)) == 0);
+
+#define processButton(b, vk)\
+case vk:{\
+input.buttons[b].isDown = isDown;\
+input.buttons[b].hasChanged = true;\
+} break;
+
+					switch (vkCode) {
+						processButton(BUTTON_UP, VK_UP);
+						processButton(BUTTON_DOWN, VK_DOWN);
+						processButton(BUTTON_LEFT, VK_LEFT);
+						processButton(BUTTON_RIGHT, VK_RIGHT);
+					}
+				}break;
+
+				default: {
+					TranslateMessage(&message);
+					DispatchMessage(&message);
+				}
+			}
 		}
 
 		// Simulate
-		clearScreen(0xff5500);
-		drawRect(0, 0, 1, 1, 0x00ff22);
+		simulateGame(&input);
 
 		// Render
 		StretchDIBits(hdc, 0, 0, renderState.width, renderState.height, 0, 0, renderState.width, renderState.height, renderState.memory, &renderState.bitmapInfo, DIB_RGB_COLORS, SRCCOPY);
