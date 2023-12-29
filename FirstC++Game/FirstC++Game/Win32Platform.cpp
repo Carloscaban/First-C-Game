@@ -69,6 +69,17 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
 
 	Input input = {};
 
+	float deltaTime = 0.016666f;
+	LARGE_INTEGER frameBeginTime;
+	QueryPerformanceCounter(&frameBeginTime);
+
+	float performanceFrequency;
+	{
+		LARGE_INTEGER perf;
+		QueryPerformanceFrequency(&perf);
+		performanceFrequency = (float)perf.QuadPart;
+	}
+
 	while (running) {
 		// input
 		MSG message;
@@ -87,15 +98,15 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
 
 #define processButton(b, vk)\
 case vk:{\
+input.buttons[b].hasChanged = isDown != input.buttons[b].isDown;\
 input.buttons[b].isDown = isDown;\
-input.buttons[b].hasChanged = true;\
 } break;
 
 					switch (vkCode) {
 						processButton(BUTTON_UP, VK_UP);
 						processButton(BUTTON_DOWN, VK_DOWN);
-						processButton(BUTTON_LEFT, VK_LEFT);
-						processButton(BUTTON_RIGHT, VK_RIGHT);
+						processButton(BUTTON_W, 'W');
+						processButton(BUTTON_S, 'S');
 					}
 				}break;
 
@@ -107,9 +118,14 @@ input.buttons[b].hasChanged = true;\
 		}
 
 		// Simulate
-		simulateGame(&input);
+		simulateGame(&input, deltaTime);
 
 		// Render
 		StretchDIBits(hdc, 0, 0, renderState.width, renderState.height, 0, 0, renderState.width, renderState.height, renderState.memory, &renderState.bitmapInfo, DIB_RGB_COLORS, SRCCOPY);
+	
+		LARGE_INTEGER frameEndTime;
+		QueryPerformanceCounter(&frameEndTime);
+		deltaTime = (float)(frameEndTime.QuadPart - frameBeginTime.QuadPart) / performanceFrequency;
+		frameBeginTime = frameEndTime;
 	}
 }
