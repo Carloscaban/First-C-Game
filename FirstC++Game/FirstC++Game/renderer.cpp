@@ -47,3 +47,26 @@ drawRect(float x, float y, float halfSizeX, float halfSizeY, u32 color) {
 
 	drawRectInPixels(x0, y0, x1, y1, color);
 }
+
+internal void 
+drawNumber(int number, float x, float y, float size, u32 color) {
+	float halfSize = size * .5f;
+	switch (number) {
+		case 0: {
+			drawRect(x - size, y, halfSize, 2.5f * size, color);
+			drawRect(x + size, y, halfSize, 2.5f * size, color);
+			drawRect(x, y + size * 2.f, halfSize, halfSize, color);
+			drawRect(x, y - size * 2.f, halfSize, halfSize, color);
+		} break;
+		case 1: {
+			drawRect(x + size, y, halfSize, 2.5f * size, color);
+		}break;
+		case 2: {
+			drawRect(x, y + size * 2.f, 1.5f * size, halfSize, color);
+			drawRect(x, y, 1.5f * size, halfSize, color);
+			drawRect(x, y - size * 2.f, 1.5f * size, halfSize, color);
+			drawRect(x + size, y + size, halfSize, halfSize, color);
+			drawRect(x - size, y - size, halfSize, halfSize, color);
+		}
+	}
+}
