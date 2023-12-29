@@ -3,6 +3,7 @@
 
 globalVariable bool running = true;
 
+
 struct RenderState {
 	int height, width;
 	void* memory;

@@ -45,6 +45,7 @@ drawRect(float x, float y, float halfSizeX, float halfSizeY, u32 color) {
 	int y0 = y - halfSizeY;
 	int y1 = y + halfSizeY;
 
+
 	drawRectInPixels(x0, y0, x1, y1, color);
 }
 
